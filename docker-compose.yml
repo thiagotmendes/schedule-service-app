@@ -1,0 +1,59 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfilegit init
+        container_name: schedule_service_app
+        ports:
+            - "8000:8000"
+        volumes:
+            - .:/var/www
+        depends_on:
+            - mysql
+            - redis
+        networks:
+            - laravel
+
+    mysql:
+        image: mysql:8.0
+        container_name: schedule_service_mysql_db
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_DATABASE: laravel
+            MYSQL_ROOT_PASSWORD: root
+        volumes:
+            - db_data:/var/lib/mysql
+        networks:
+            - laravel
+
+    redis:
+        image: redis:alpine
+        container_name: schedule_service_redis_cache
+        ports:
+            - "6379:6379"
+        networks:
+            - laravel
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: schedule_service_pma
+        ports:
+            - "8080:80"
+        environment:
+            PMA_HOST: mysql
+            MYSQL_ROOT_PASSWORD: root
+        depends_on:
+            - mysql
+        networks:
+            - laravel
+
+volumes:
+    db_data:
+
+networks:
+    laravel:
+        driver: bridge
