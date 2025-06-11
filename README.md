@@ -95,13 +95,31 @@ php artisan db:seed
 
 ## 📚 Documentação da API
 
-Após subir a aplicação, acesse:
+A API é totalmente documentada usando Swagger/OpenAPI. Após subir a aplicação, acesse:
 
 ```
 http://localhost:8000/api/documentation
 ```
 
-(Usando Swagger UI via `L5-Swagger` ou `Swagger-PHP`)
+### Endpoints Documentados
+
+A documentação inclui todos os endpoints disponíveis:
+
+- **Clientes**: Gerenciamento completo de clientes (listar, criar, visualizar, atualizar, excluir)
+- **Prestadores**: Gerenciamento completo de prestadores de serviços
+- **Serviços**: Gerenciamento de serviços oferecidos
+
+### Métodos HTTP
+
+Para operações de atualização, a API utiliza o método PUT. Requisições PATCH também são direcionadas para o mesmo método PUT, seguindo a convenção RESTful do Laravel.
+
+### Regenerar Documentação
+
+Se você fizer alterações nos controladores ou nas anotações Swagger, regenere a documentação com:
+
+```bash
+php artisan l5-swagger:generate
+```
 
 ---
 
