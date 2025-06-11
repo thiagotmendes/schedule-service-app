@@ -22,6 +22,6 @@ fi
 php artisan migrate --force
 
 # (Opcional) Roda os seeders
-# php artisan db:seed --force
+php artisan db:seed --force
 
 php artisan serve --host=0.0.0.0 --port=8000
