@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Client;
+use App\Models\Service;
 use Illuminate\Http\Request;
 
-class ClientController extends Controller
+class ServiceController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return Client::all();
+        //
+        return Service::all();
     }
 
     /**
@@ -20,16 +21,18 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
+        //
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:clients',
-            'phone' => 'required|string|max:255'
+            'description' => 'required|string|max:255',
+            'duration' => 'required|integer|min:1',
+            'price' => 'required|numeric'
         ]);
 
-        Client::create($data);
+        Service::create($data);
 
         return response()->json([
-            'message' => 'Client created successfully',
+            'message' => 'Service created successfully',
             'data' => $data
         ], 201);
     }
@@ -39,7 +42,7 @@ class ClientController extends Controller
      */
     public function show(string $id)
     {
-       return Client::findOrFail($id);
+        return Service::findOrFail($id);
     }
 
     /**
@@ -47,30 +50,34 @@ class ClientController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $client = Client::findOrFail($id);
-
+        //
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:clients,email,' . $client->id,
-            'phone' => 'required|string|max:255',
+            'description' => 'required|string|max:255',
+            'duration' => 'required|integer|min:1',
+            'price' => 'required|numeric'
         ]);
 
-        $client->update($data);
+        $service = Service::findOrFail($id);
+        $service->update($data);
 
         return response()->json([
-            'message' => 'Client updated successfully',
-            'data' => $client
+            'message' => 'Service updated successfully',
+            'data' => $data
         ], 200);
     }
 
-
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(string $id)
     {
-        $client = Client::findOrFail($id);
-        $client->delete();
+        //
+        $data = Service::findOrFail($id);
+        $data->delete();
 
         return response()->json([
-            'message' => 'Client deleted successfully'
+            'message' => 'Service deleted successfully'
         ], 200);
     }
 }
