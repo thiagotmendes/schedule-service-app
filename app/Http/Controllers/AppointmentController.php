@@ -157,66 +157,84 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @OA\Put(
+     * @OA\Patch(
      *     path="/api/appointments/{id}",
-     *     summary="Update an existing appointment",
+     *     summary="Atualiza parcialmente um agendamento",
+     *     description="Atualiza um ou mais campos de um agendamento existente",
+     *     operationId="patchAppointment",
      *     tags={"Appointments"},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         required=true,
-     *         description="Appointment ID",
+     *         description="ID do agendamento",
      *         @OA\Schema(type="integer")
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         description="Appointment data",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="client_id", type="integer", example=1, description="Client ID"),
+     *             @OA\Property(property="provider_id", type="integer", example=1, description="Provider ID"),
+     *             @OA\Property(property="service_id", type="integer", example=1, description="Service ID"),
+     *             @OA\Property(property="scheduled_at", type="string", format="date-time", example="2025-06-15T14:30:00Z", description="Appointment date and time")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Atualização parcial bem-sucedida",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Appointment updated successfully"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Agendamento não encontrado"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Erro de validação"
+     *     )
+     * )
+     *
+     * @OA\Put(
+     *     path="/api/appointments/{id}",
+     *     summary="Atualiza completamente um agendamento",
+     *     description="Substitui todos os campos obrigatórios de um agendamento",
+     *     operationId="putAppointment",
+     *     tags={"Appointments"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID do agendamento",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
      *         @OA\JsonContent(
      *             required={"client_id", "provider_id", "service_id", "scheduled_at"},
      *             @OA\Property(property="client_id", type="integer", example=1, description="Client ID"),
      *             @OA\Property(property="provider_id", type="integer", example=1, description="Provider ID"),
      *             @OA\Property(property="service_id", type="integer", example=1, description="Service ID"),
-     *             @OA\Property(property="scheduled_at", type="string", format="date-time", example="2023-06-15T14:30:00Z", description="Appointment date and time")
+     *             @OA\Property(property="scheduled_at", type="string", format="date-time", example="2025-06-15T14:30:00Z", description="Appointment date and time")
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Appointment updated successfully",
+     *         description="Agendamento atualizado com sucesso",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Appointment updated successfully"),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="client_id", type="integer", example=1),
-     *                 @OA\Property(property="provider_id", type="integer", example=1),
-     *                 @OA\Property(property="service_id", type="integer", example=1),
-     *                 @OA\Property(property="scheduled_at", type="string", format="date-time", example="2023-06-15T14:30:00Z")
-     *             )
+     *             @OA\Property(property="data", type="object")
      *         )
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Appointment not found",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="No query results for model [App\\Models\\Appointment] 999")
-     *         )
+     *         description="Agendamento não encontrado"
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
-     *             @OA\Property(
-     *                 property="errors",
-     *                 type="object",
-     *                 @OA\Property(property="client_id", type="array", @OA\Items(type="string", example="The client id field is required.")),
-     *                 @OA\Property(property="provider_id", type="array", @OA\Items(type="string", example="The provider id field is required.")),
-     *                 @OA\Property(property="service_id", type="array", @OA\Items(type="string", example="The service id field is required.")),
-     *                 @OA\Property(property="scheduled_at", type="array", @OA\Items(type="string", example="The scheduled at must be a date after now."))
-     *             )
-     *         )
+     *         description="Erro de validação"
      *     )
      * )
      */

@@ -296,14 +296,14 @@
                 "tags": [
                     "Appointments"
                 ],
-                "summary": "Update an existing appointment",
-                "description": "Update the specified resource in storage.",
-                "operationId": "a779a3a6175fee8a68b75461718a1ec3",
+                "summary": "Atualiza completamente um agendamento",
+                "description": "Substitui todos os campos obrigatórios de um agendamento",
+                "operationId": "putAppointment",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "Appointment ID",
+                        "description": "ID do agendamento",
                         "required": true,
                         "schema": {
                             "type": "integer"
@@ -311,7 +311,6 @@
                     }
                 ],
                 "requestBody": {
-                    "description": "Appointment data",
                     "required": true,
                     "content": {
                         "application/json": {
@@ -342,7 +341,7 @@
                                         "description": "Appointment date and time",
                                         "type": "string",
                                         "format": "date-time",
-                                        "example": "2023-06-15T14:30:00Z"
+                                        "example": "2025-06-15T14:30:00Z"
                                     }
                                 },
                                 "type": "object"
@@ -352,7 +351,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Appointment updated successfully",
+                        "description": "Agendamento atualizado com sucesso",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -362,25 +361,6 @@
                                             "example": "Appointment updated successfully"
                                         },
                                         "data": {
-                                            "properties": {
-                                                "client_id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "provider_id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "service_id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "scheduled_at": {
-                                                    "type": "string",
-                                                    "format": "date-time",
-                                                    "example": "2023-06-15T14:30:00Z"
-                                                }
-                                            },
                                             "type": "object"
                                         }
                                     },
@@ -390,69 +370,10 @@
                         }
                     },
                     "404": {
-                        "description": "Appointment not found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "No query results for model [App\\\\Models\\\\Appointment] 999"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Agendamento não encontrado"
                     },
                     "422": {
-                        "description": "Validation error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The given data was invalid."
-                                        },
-                                        "errors": {
-                                            "properties": {
-                                                "client_id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "The client id field is required."
-                                                    }
-                                                },
-                                                "provider_id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "The provider id field is required."
-                                                    }
-                                                },
-                                                "service_id": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "The service id field is required."
-                                                    }
-                                                },
-                                                "scheduled_at": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string",
-                                                        "example": "The scheduled at must be a date after now."
-                                                    }
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Erro de validação"
                     }
                 }
             },
@@ -506,6 +427,85 @@
                                 }
                             }
                         }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Appointments"
+                ],
+                "summary": "Atualiza parcialmente um agendamento",
+                "description": "Atualiza um ou mais campos de um agendamento existente",
+                "operationId": "patchAppointment",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do agendamento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "client_id": {
+                                        "description": "Client ID",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "provider_id": {
+                                        "description": "Provider ID",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "service_id": {
+                                        "description": "Service ID",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "scheduled_at": {
+                                        "description": "Appointment date and time",
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-06-15T14:30:00Z"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Atualização parcial bem-sucedida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Appointment updated successfully"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Agendamento não encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
                     }
                 }
             }
