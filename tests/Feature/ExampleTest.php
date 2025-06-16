@@ -14,6 +14,11 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        // The root route redirects to /api/documentation, so we expect a 302 response
+        $response->assertStatus(302)
+                 ->assertRedirect('/api/documentation');
+
+        // Follow the redirect and check that the documentation page loads successfully
+        $this->get('/api/documentation')->assertStatus(200);
     }
 }

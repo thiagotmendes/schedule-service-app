@@ -20,6 +20,496 @@
         }
     ],
     "paths": {
+        "/api/appointments": {
+            "get": {
+                "tags": [
+                    "Appointments"
+                ],
+                "summary": "Get all appointments",
+                "description": "Display a listing of the resource.",
+                "operationId": "09fd012ab97514481bde57bbeac2699b",
+                "responses": {
+                    "200": {
+                        "description": "List of all appointments",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "client_id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "provider_id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "service_id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "scheduled_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2023-06-15T14:30:00Z"
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "updated_at": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Appointments"
+                ],
+                "summary": "Create a new appointment",
+                "description": "Store a newly created resource in storage.",
+                "operationId": "15017f04a457b26e2a870c8a011a407a",
+                "requestBody": {
+                    "description": "Appointment data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "client_id",
+                                    "provider_id",
+                                    "service_id",
+                                    "scheduled_at"
+                                ],
+                                "properties": {
+                                    "client_id": {
+                                        "description": "Client ID",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "provider_id": {
+                                        "description": "Provider ID",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "service_id": {
+                                        "description": "Service ID",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "scheduled_at": {
+                                        "description": "Appointment date and time",
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2023-06-15T14:30:00Z"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Appointment created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Appointment created successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "client_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "provider_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "service_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "scheduled_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-06-15T14:30:00Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid."
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "client_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The client id field is required."
+                                                    }
+                                                },
+                                                "provider_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The provider id field is required."
+                                                    }
+                                                },
+                                                "service_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The service id field is required."
+                                                    }
+                                                },
+                                                "scheduled_at": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The scheduled at must be a date after now."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/appointments/{id}": {
+            "get": {
+                "tags": [
+                    "Appointments"
+                ],
+                "summary": "Get a specific appointment by ID",
+                "description": "Display the specified resource.",
+                "operationId": "13b46cd03a1dae29a4c4dd6e756d37da",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Appointment ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Appointment details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "client_id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "provider_id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "service_id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "scheduled_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2023-06-15T14:30:00Z"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Appointment not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No query results for model [App\\\\Models\\\\Appointment] 999"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Appointments"
+                ],
+                "summary": "Update an existing appointment",
+                "description": "Update the specified resource in storage.",
+                "operationId": "a779a3a6175fee8a68b75461718a1ec3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Appointment ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Appointment data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "client_id",
+                                    "provider_id",
+                                    "service_id",
+                                    "scheduled_at"
+                                ],
+                                "properties": {
+                                    "client_id": {
+                                        "description": "Client ID",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "provider_id": {
+                                        "description": "Provider ID",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "service_id": {
+                                        "description": "Service ID",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "scheduled_at": {
+                                        "description": "Appointment date and time",
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2023-06-15T14:30:00Z"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Appointment updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Appointment updated successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "client_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "provider_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "service_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "scheduled_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-06-15T14:30:00Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Appointment not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No query results for model [App\\\\Models\\\\Appointment] 999"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid."
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "client_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The client id field is required."
+                                                    }
+                                                },
+                                                "provider_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The provider id field is required."
+                                                    }
+                                                },
+                                                "service_id": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The service id field is required."
+                                                    }
+                                                },
+                                                "scheduled_at": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The scheduled at must be a date after now."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Appointments"
+                ],
+                "summary": "Delete an appointment",
+                "description": "Remove the specified resource from storage.",
+                "operationId": "cc5727c249d22f6719923c09625213e0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Appointment ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Appointment deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Appointment deleted successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Appointment not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No query results for model [App\\\\Models\\\\Appointment] 999"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/clients": {
             "get": {
                 "tags": [
@@ -1210,6 +1700,120 @@
                 }
             }
         },
+        "/api/providers/{providerId}/services": {
+            "post": {
+                "tags": [
+                    "Provider Services"
+                ],
+                "summary": "Attach services to a provider",
+                "description": "Attach services to a provider",
+                "operationId": "1eb2387edfcb48002e19b4a269ade5d5",
+                "parameters": [
+                    {
+                        "name": "providerId",
+                        "in": "path",
+                        "description": "Provider ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Service IDs to attach",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "service_ids"
+                                ],
+                                "properties": {
+                                    "service_ids": {
+                                        "description": "Array of service IDs to attach to the provider",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "example": 1
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Services attached successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Serviços vinculados com sucesso"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Provider not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No query results for model [App\\\\Models\\\\Provider] 999"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid."
+                                        },
+                                        "errors": {
+                                            "properties": {
+                                                "service_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The service ids field is required."
+                                                    }
+                                                },
+                                                "service_ids.0": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The selected service_ids.0 is invalid."
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/services": {
             "get": {
                 "tags": [
@@ -1814,6 +2418,10 @@
     },
     "tags": [
         {
+            "name": "Appointments",
+            "description": "API Endpoints for managing appointments"
+        },
+        {
             "name": "Clients",
             "description": "API Endpoints for Client management"
         },
@@ -1824,6 +2432,10 @@
         {
             "name": "Providers",
             "description": "API Endpoints for Provider management"
+        },
+        {
+            "name": "Provider Services",
+            "description": "API Endpoints for managing provider services"
         }
     ]
 }
