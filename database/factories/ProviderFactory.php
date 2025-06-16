@@ -20,7 +20,8 @@ class ProviderFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'phone' => fake()->phoneNumber(),
-            'document' => fake()->numerify('###.###.###-##'),
+            'document' => $this->faker->numerify('###########'),
+            'user_id' => \App\Models\User::factory(),
         ];
     }
 }

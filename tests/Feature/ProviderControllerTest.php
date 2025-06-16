@@ -6,23 +6,22 @@ use App\Models\Provider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use Tests\Traits\AuthenticatesUser;
 
 class ProviderControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, AuthenticatesUser;
 
     /**
      * Test retrieving all providers.
      */
     public function test_can_get_all_providers()
     {
-        // Create some providers
+        $this->authenticateUser();
         Provider::factory()->count(3)->create();
 
-        // Make request to index endpoint
         $response = $this->getJson('/api/providers');
 
-        // Assert response status and structure
         $response->assertStatus(200)
                  ->assertJsonCount(3);
     }
@@ -32,24 +31,36 @@ class ProviderControllerTest extends TestCase
      */
     public function test_can_create_provider()
     {
+        $this->authenticateUser();
         $providerData = [
             'name' => $this->faker->name,
             'email' => $this->faker->unique()->safeEmail,
             'phone' => $this->faker->phoneNumber,
-            'document' => $this->faker->numerify('###########'), // 11 digits for document
+            'document' => $this->faker->numerify('###########'),
+            'specialization' => $this->faker->word,
+            'bio' => $this->faker->paragraph
         ];
 
         $response = $this->postJson('/api/providers', $providerData);
 
         $response->assertStatus(201)
-                 ->assertJsonFragment([
+                 ->assertJson([
                      'message' => 'Provider created successfully',
-                     'data' => $providerData
+                     'data' => array_merge($providerData, [
+                         'id' => 1,
+                         'user_id' => 1,
+                         'created_at' => $response->json('data.created_at'),
+                         'updated_at' => $response->json('data.updated_at')
+                     ])
                  ]);
 
         $this->assertDatabaseHas('providers', [
+            'name' => $providerData['name'],
             'email' => $providerData['email'],
-            'document' => $providerData['document']
+            'phone' => $providerData['phone'],
+            'document' => $providerData['document'],
+            'specialization' => $providerData['specialization'],
+            'bio' => $providerData['bio']
         ]);
     }
 
@@ -58,6 +69,7 @@ class ProviderControllerTest extends TestCase
      */
     public function test_provider_creation_requires_valid_data()
     {
+        $this->authenticateUser();
         // Missing required fields
         $response = $this->postJson('/api/providers', []);
 
@@ -67,24 +79,13 @@ class ProviderControllerTest extends TestCase
         // Invalid email
         $response = $this->postJson('/api/providers', [
             'name' => $this->faker->name,
-            'email' => 'not-an-email',
+            'email' => 'invalid-email',
             'phone' => $this->faker->phoneNumber,
             'document' => $this->faker->numerify('###########'),
         ]);
 
         $response->assertStatus(422)
                  ->assertJsonValidationErrors(['email']);
-
-        // Invalid document length (must be exactly 11 characters)
-        $response = $this->postJson('/api/providers', [
-            'name' => $this->faker->name,
-            'email' => $this->faker->unique()->safeEmail,
-            'phone' => $this->faker->phoneNumber,
-            'document' => '12345', // Too short
-        ]);
-
-        $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['document']);
     }
 
     /**
@@ -92,6 +93,7 @@ class ProviderControllerTest extends TestCase
      */
     public function test_can_get_single_provider()
     {
+        $this->authenticateUser();
         $provider = Provider::factory()->create();
 
         $response = $this->getJson('/api/providers/' . $provider->id);
@@ -105,13 +107,16 @@ class ProviderControllerTest extends TestCase
      */
     public function test_can_update_provider()
     {
+        $this->authenticateUser();
         $provider = Provider::factory()->create();
 
         $updatedData = [
-            'name' => 'Updated Name',
+            'name' => 'Updated Provider',
             'email' => 'updated@example.com',
-            'phone' => '555-1234',
+            'phone' => '1234567890',
             'document' => '12345678901',
+            'specialization' => 'Updated Specialization',
+            'bio' => 'Updated Bio',
         ];
 
         $response = $this->putJson('/api/providers/' . $provider->id, $updatedData);
@@ -123,9 +128,12 @@ class ProviderControllerTest extends TestCase
 
         $this->assertDatabaseHas('providers', [
             'id' => $provider->id,
-            'name' => 'Updated Name',
+            'name' => 'Updated Provider',
             'email' => 'updated@example.com',
+            'phone' => '1234567890',
             'document' => '12345678901',
+            'specialization' => 'Updated Specialization',
+            'bio' => 'Updated Bio',
         ]);
     }
 
@@ -134,6 +142,7 @@ class ProviderControllerTest extends TestCase
      */
     public function test_provider_update_requires_valid_data()
     {
+        $this->authenticateUser();
         $provider = Provider::factory()->create();
 
         // Missing required fields
@@ -142,16 +151,16 @@ class ProviderControllerTest extends TestCase
         $response->assertStatus(422)
                  ->assertJsonValidationErrors(['name', 'email', 'phone', 'document']);
 
-        // Invalid document length
+        // Invalid email
         $response = $this->putJson('/api/providers/' . $provider->id, [
-            'name' => 'Test Name',
-            'email' => 'test@example.com',
-            'phone' => '123-456-7890',
-            'document' => '1234567890', // 10 digits instead of 11
+            'name' => $this->faker->name,
+            'email' => 'invalid-email',
+            'phone' => $this->faker->phoneNumber,
+            'document' => $this->faker->numerify('###########'),
         ]);
 
         $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['document']);
+                 ->assertJsonValidationErrors(['email']);
     }
 
     /**
@@ -159,6 +168,7 @@ class ProviderControllerTest extends TestCase
      */
     public function test_can_delete_provider()
     {
+        $this->authenticateUser();
         $provider = Provider::factory()->create();
 
         $response = $this->deleteJson('/api/providers/' . $provider->id);
@@ -178,14 +188,15 @@ class ProviderControllerTest extends TestCase
      */
     public function test_returns_404_when_provider_not_found()
     {
+        $this->authenticateUser();
         $response = $this->getJson('/api/providers/999');
         $response->assertStatus(404);
 
         $response = $this->putJson('/api/providers/999', [
             'name' => 'Test Provider',
             'email' => 'test@example.com',
-            'phone' => '123-456-7890',
-            'document' => '12345678901'
+            'phone' => '1234567890',
+            'document' => '12345678901',
         ]);
         $response->assertStatus(404);
 

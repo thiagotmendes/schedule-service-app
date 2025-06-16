@@ -14,6 +14,9 @@ class Provider extends Model
         'email',
         'phone',
         'document',
+        'user_id',
+        'specialization',
+        'bio',
     ];
 
     public function services()
@@ -21,5 +24,15 @@ class Provider extends Model
         return $this->belongsToMany(Service::class)
             ->withPivot('price_override')
             ->withTimestamps();
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
     }
 }

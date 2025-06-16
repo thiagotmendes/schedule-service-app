@@ -6,16 +6,18 @@ use App\Models\Service;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use Tests\Traits\AuthenticatesUser;
 
 class ServiceControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, AuthenticatesUser;
 
     /**
      * Test retrieving all services.
      */
     public function test_can_get_all_services()
     {
+        $this->authenticateUser();
         // Create some services
         Service::factory()->count(3)->create();
 
@@ -32,6 +34,7 @@ class ServiceControllerTest extends TestCase
      */
     public function test_can_create_service()
     {
+        $this->authenticateUser();
         $serviceData = [
             'name' => $this->faker->word,
             'description' => $this->faker->sentence,
@@ -58,6 +61,7 @@ class ServiceControllerTest extends TestCase
      */
     public function test_service_creation_requires_valid_data()
     {
+        $this->authenticateUser();
         // Missing required fields
         $response = $this->postJson('/api/services', []);
 
@@ -81,6 +85,7 @@ class ServiceControllerTest extends TestCase
      */
     public function test_can_get_single_service()
     {
+        $this->authenticateUser();
         $service = Service::factory()->create();
 
         $response = $this->getJson('/api/services/' . $service->id);
@@ -94,6 +99,7 @@ class ServiceControllerTest extends TestCase
      */
     public function test_can_update_service()
     {
+        $this->authenticateUser();
         $service = Service::factory()->create();
 
         $updatedData = [
@@ -124,6 +130,7 @@ class ServiceControllerTest extends TestCase
      */
     public function test_service_update_requires_valid_data()
     {
+        $this->authenticateUser();
         $service = Service::factory()->create();
 
         // Missing required fields
@@ -138,6 +145,7 @@ class ServiceControllerTest extends TestCase
      */
     public function test_can_delete_service()
     {
+        $this->authenticateUser();
         $service = Service::factory()->create();
 
         $response = $this->deleteJson('/api/services/' . $service->id);
@@ -157,6 +165,7 @@ class ServiceControllerTest extends TestCase
      */
     public function test_returns_404_when_service_not_found()
     {
+        $this->authenticateUser();
         $response = $this->getJson('/api/services/999');
         $response->assertStatus(404);
 

@@ -14,6 +14,17 @@ class Client extends Model
         'name',
         'email',
         'phone',
+        'user_id',
+        'address',
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    }
 }

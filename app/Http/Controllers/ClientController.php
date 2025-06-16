@@ -99,14 +99,17 @@ class ClientController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:clients',
-            'phone' => 'required|string|max:255'
+            'phone' => 'required|string|max:255',
+            'address' => 'nullable|string|max:255'
         ]);
 
-        Client::create($data);
+        $data['user_id'] = $request->user()->id;
+
+        $client = Client::create($data);
 
         return response()->json([
             'message' => 'Client created successfully',
-            'data' => $data
+            'data' => $client
         ], 201);
     }
 
@@ -289,6 +292,7 @@ class ClientController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:clients,email,' . $client->id,
             'phone' => 'required|string|max:255',
+            'address' => 'nullable|string|max:255'
         ]);
 
         $client->update($data);
@@ -339,5 +343,46 @@ class ClientController extends Controller
         return response()->json([
             'message' => 'Client deleted successfully'
         ], 200);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/client/profile",
+     *     summary="Obter perfil do cliente autenticado",
+     *     tags={"Client"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Perfil do cliente retornado com sucesso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Client profile data"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="user_id", type="integer", example=1),
+     *                 @OA\Property(property="phone", type="string", example="(11) 99999-9999"),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Perfil do cliente não encontrado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Client profile not found")
+     *         )
+     *     )
+     * )
+     */
+    public function profile()
+    {
+        $client = auth()->user()->client;
+
+        if (!$client) {
+            return response()->json(['message' => 'Client profile not found'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Client profile data',
+            'data' => $client
+        ]);
     }
 }

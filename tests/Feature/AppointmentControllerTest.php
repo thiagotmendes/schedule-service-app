@@ -9,23 +9,22 @@ use App\Models\Service;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use Tests\Traits\AuthenticatesUser;
 
 class AppointmentControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, AuthenticatesUser;
 
     /**
      * Test retrieving all appointments.
      */
     public function test_can_get_all_appointments()
     {
-        // Create some appointments
+        $this->authenticateUser();
         Appointment::factory()->count(3)->create();
 
-        // Make request to index endpoint
         $response = $this->getJson('/api/appointments');
 
-        // Assert response status and structure
         $response->assertStatus(200)
                  ->assertJsonCount(3);
     }
@@ -35,7 +34,7 @@ class AppointmentControllerTest extends TestCase
      */
     public function test_can_create_appointment()
     {
-        // Create related models
+        $this->authenticateUser();
         $client = Client::factory()->create();
         $provider = Provider::factory()->create();
         $service = Service::factory()->create();
@@ -44,20 +43,28 @@ class AppointmentControllerTest extends TestCase
             'client_id' => $client->id,
             'provider_id' => $provider->id,
             'service_id' => $service->id,
-            'scheduled_at' => now()->addDays(1)->format('Y-m-d H:i:s'),
+            'scheduled_at' => now()->addDay()->format('Y-m-d H:i:s'),
+            'status' => 'pending',
+            'notes' => $this->faker->sentence,
         ];
 
         $response = $this->postJson('/api/appointments', $appointmentData);
 
         $response->assertStatus(201)
-                 ->assertJsonFragment([
+                 ->assertJson([
                      'message' => 'Appointment created successfully',
+                     'data' => array_merge($appointmentData, [
+                         'id' => 1,
+                         'created_at' => $response->json('data.created_at'),
+                         'updated_at' => $response->json('data.updated_at')
+                     ])
                  ]);
 
         $this->assertDatabaseHas('appointments', [
             'client_id' => $client->id,
             'provider_id' => $provider->id,
             'service_id' => $service->id,
+            'status' => 'pending',
         ]);
     }
 
@@ -66,6 +73,7 @@ class AppointmentControllerTest extends TestCase
      */
     public function test_appointment_creation_requires_valid_data()
     {
+        $this->authenticateUser();
         // Missing required fields
         $response = $this->postJson('/api/appointments', []);
 
@@ -81,7 +89,7 @@ class AppointmentControllerTest extends TestCase
             'client_id' => $client->id,
             'provider_id' => $provider->id,
             'service_id' => $service->id,
-            'scheduled_at' => now()->subDay()->format('Y-m-d H:i:s'), // Past date
+            'scheduled_at' => now()->subDay()->format('Y-m-d H:i:s'),
         ]);
 
         $response->assertStatus(422)
@@ -93,28 +101,24 @@ class AppointmentControllerTest extends TestCase
      */
     public function test_can_get_single_appointment()
     {
+        $this->authenticateUser();
         $appointment = Appointment::factory()->create();
 
         $response = $this->getJson('/api/appointments/' . $appointment->id);
 
-        $response->assertStatus(200);
-
-        // Get the response data
-        $responseData = $response->json();
-
-        // Assert that the appointment data matches (except for scheduled_at format)
-        $this->assertEquals($appointment->id, $responseData['id']);
-        $this->assertEquals($appointment->client_id, $responseData['client_id']);
-        $this->assertEquals($appointment->provider_id, $responseData['provider_id']);
-        $this->assertEquals($appointment->service_id, $responseData['service_id']);
-        $this->assertEquals($appointment->status, $responseData['status']);
-        $this->assertEquals($appointment->notes, $responseData['notes']);
-
-        // For scheduled_at, just check that the date string contains the same date information
-        $this->assertStringContainsString(
-            $appointment->scheduled_at->format('Y-m-d H:i'),
-            $responseData['scheduled_at']
-        );
+        $response->assertStatus(200)
+                 ->assertJson([
+                     'id' => $appointment->id,
+                     'client_id' => $appointment->client_id,
+                     'provider_id' => $appointment->provider_id,
+                     'service_id' => $appointment->service_id,
+                     'scheduled_at' => $appointment->scheduled_at->format('Y-m-d H:i:s'),
+                     'status' => $appointment->status,
+                     'notes' => $appointment->notes,
+                     'created_at' => $appointment->created_at->toJSON(),
+                     'updated_at' => $appointment->updated_at->toJSON(),
+                     'deleted_at' => null
+                 ]);
     }
 
     /**
@@ -122,16 +126,18 @@ class AppointmentControllerTest extends TestCase
      */
     public function test_can_update_appointment()
     {
+        $this->authenticateUser();
         $appointment = Appointment::factory()->create();
-        $newClient = Client::factory()->create();
         $newProvider = Provider::factory()->create();
         $newService = Service::factory()->create();
 
         $updatedData = [
-            'client_id' => $newClient->id,
+            'client_id' => $appointment->client_id,
             'provider_id' => $newProvider->id,
             'service_id' => $newService->id,
-            'scheduled_at' => now()->addDays(5)->format('Y-m-d H:i:s'),
+            'scheduled_at' => now()->addDays(2)->format('Y-m-d H:i:s'),
+            'status' => 'confirmed',
+            'notes' => 'Updated notes',
         ];
 
         $response = $this->putJson('/api/appointments/' . $appointment->id, $updatedData);
@@ -143,9 +149,11 @@ class AppointmentControllerTest extends TestCase
 
         $this->assertDatabaseHas('appointments', [
             'id' => $appointment->id,
-            'client_id' => $newClient->id,
+            'client_id' => $appointment->client_id,
             'provider_id' => $newProvider->id,
             'service_id' => $newService->id,
+            'status' => 'confirmed',
+            'notes' => 'Updated notes',
         ]);
     }
 
@@ -154,13 +162,24 @@ class AppointmentControllerTest extends TestCase
      */
     public function test_appointment_update_requires_valid_data()
     {
+        $this->authenticateUser();
         $appointment = Appointment::factory()->create();
 
         // Missing required fields
         $response = $this->putJson('/api/appointments/' . $appointment->id, []);
 
         $response->assertStatus(422)
-                 ->assertJsonValidationErrors(['client_id', 'provider_id', 'service_id', 'scheduled_at']);
+                 ->assertJsonValidationErrors(['provider_id', 'service_id', 'scheduled_at']);
+
+        // Invalid date (past date)
+        $response = $this->putJson('/api/appointments/' . $appointment->id, [
+            'provider_id' => $appointment->provider_id,
+            'service_id' => $appointment->service_id,
+            'scheduled_at' => now()->subDay()->format('Y-m-d H:i:s'),
+        ]);
+
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors(['scheduled_at']);
     }
 
     /**
@@ -168,6 +187,7 @@ class AppointmentControllerTest extends TestCase
      */
     public function test_can_delete_appointment()
     {
+        $this->authenticateUser();
         $appointment = Appointment::factory()->create();
 
         $response = $this->deleteJson('/api/appointments/' . $appointment->id);
@@ -177,7 +197,6 @@ class AppointmentControllerTest extends TestCase
                      'message' => 'Appointment deleted successfully'
                  ]);
 
-        // Since the model uses soft deletes, check that it's soft deleted
         $this->assertSoftDeleted('appointments', [
             'id' => $appointment->id
         ]);
@@ -188,18 +207,14 @@ class AppointmentControllerTest extends TestCase
      */
     public function test_returns_404_when_appointment_not_found()
     {
+        $this->authenticateUser();
         $response = $this->getJson('/api/appointments/999');
         $response->assertStatus(404);
 
-        $client = Client::factory()->create();
-        $provider = Provider::factory()->create();
-        $service = Service::factory()->create();
-
         $response = $this->putJson('/api/appointments/999', [
-            'client_id' => $client->id,
-            'provider_id' => $provider->id,
-            'service_id' => $service->id,
-            'scheduled_at' => now()->addDays(1)->format('Y-m-d H:i:s'),
+            'provider_id' => 1,
+            'service_id' => 1,
+            'scheduled_at' => now()->addDay()->format('Y-m-d H:i:s'),
         ]);
         $response->assertStatus(404);
 

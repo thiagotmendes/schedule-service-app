@@ -81,7 +81,7 @@ class ProviderServiceController extends Controller
         $provider->services()->syncWithoutDetaching($validated['service_ids']);
 
         return response()->json([
-            'message' => 'Serviços vinculados com sucesso'
+            'message' => 'Services attached successfully'
         ]);
     }
 

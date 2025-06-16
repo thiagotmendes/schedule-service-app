@@ -97,19 +97,20 @@ class AppointmentController extends Controller
      */
     public function store(Request $request)
     {
-        //
         $data = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'provider_id' => 'required|exists:providers,id',
             'service_id' => 'required|exists:services,id',
             'scheduled_at' => 'required|date|after:now',
+            'status' => 'nullable|string|in:pending,confirmed,cancelled,completed',
+            'notes' => 'nullable|string'
         ]);
 
-        Appointment::create($data);
+        $appointment = Appointment::create($data);
 
         return response()->json([
             'message' => 'Appointment created successfully',
-            'data' => $data
+            'data' => $appointment
         ], 201);
     }
 
@@ -240,23 +241,23 @@ class AppointmentController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $appointment = Appointment::findOrFail($id);
 
         $data = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'provider_id' => 'required|exists:providers,id',
             'service_id' => 'required|exists:services,id',
             'scheduled_at' => 'required|date|after:now',
+            'status' => 'nullable|string|in:pending,confirmed,cancelled,completed',
+            'notes' => 'nullable|string'
         ]);
-
-        $appointment = Appointment::findOrFail($id);
 
         $appointment->update($data);
 
         return response()->json([
             'message' => 'Appointment updated successfully',
-            'data' => $data
-        ], 200);
+            'data' => $appointment
+        ]);
     }
 
     /**

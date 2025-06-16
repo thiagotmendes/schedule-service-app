@@ -6,23 +6,22 @@ use App\Models\Client;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use Tests\Traits\AuthenticatesUser;
 
 class ClientControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, AuthenticatesUser;
 
     /**
      * Test retrieving all clients.
      */
     public function test_can_get_all_clients()
     {
-        // Create some clients
+        $this->authenticateUser();
         Client::factory()->count(3)->create();
 
-        // Make request to index endpoint
         $response = $this->getJson('/api/clients');
 
-        // Assert response status and structure
         $response->assertStatus(200)
                  ->assertJsonCount(3);
     }
@@ -32,22 +31,32 @@ class ClientControllerTest extends TestCase
      */
     public function test_can_create_client()
     {
+        $this->authenticateUser();
         $clientData = [
             'name' => $this->faker->name,
             'email' => $this->faker->unique()->safeEmail,
             'phone' => $this->faker->phoneNumber,
+            'address' => $this->faker->address
         ];
 
         $response = $this->postJson('/api/clients', $clientData);
 
         $response->assertStatus(201)
-                 ->assertJsonFragment([
+                 ->assertJson([
                      'message' => 'Client created successfully',
-                     'data' => $clientData
+                     'data' => array_merge($clientData, [
+                         'id' => 1,
+                         'user_id' => 1,
+                         'created_at' => $response->json('data.created_at'),
+                         'updated_at' => $response->json('data.updated_at')
+                     ])
                  ]);
 
         $this->assertDatabaseHas('clients', [
-            'email' => $clientData['email']
+            'name' => $clientData['name'],
+            'email' => $clientData['email'],
+            'phone' => $clientData['phone'],
+            'address' => $clientData['address']
         ]);
     }
 
@@ -56,6 +65,7 @@ class ClientControllerTest extends TestCase
      */
     public function test_client_creation_requires_valid_data()
     {
+        $this->authenticateUser();
         // Missing required fields
         $response = $this->postJson('/api/clients', []);
 
@@ -65,7 +75,7 @@ class ClientControllerTest extends TestCase
         // Invalid email
         $response = $this->postJson('/api/clients', [
             'name' => $this->faker->name,
-            'email' => 'not-an-email',
+            'email' => 'invalid-email',
             'phone' => $this->faker->phoneNumber,
         ]);
 
@@ -78,6 +88,7 @@ class ClientControllerTest extends TestCase
      */
     public function test_can_get_single_client()
     {
+        $this->authenticateUser();
         $client = Client::factory()->create();
 
         $response = $this->getJson('/api/clients/' . $client->id);
@@ -91,12 +102,14 @@ class ClientControllerTest extends TestCase
      */
     public function test_can_update_client()
     {
+        $this->authenticateUser();
         $client = Client::factory()->create();
 
         $updatedData = [
-            'name' => 'Updated Name',
+            'name' => 'Updated Client',
             'email' => 'updated@example.com',
-            'phone' => '555-1234',
+            'phone' => '1234567890',
+            'address' => 'Updated Address',
         ];
 
         $response = $this->putJson('/api/clients/' . $client->id, $updatedData);
@@ -108,8 +121,10 @@ class ClientControllerTest extends TestCase
 
         $this->assertDatabaseHas('clients', [
             'id' => $client->id,
-            'name' => 'Updated Name',
+            'name' => 'Updated Client',
             'email' => 'updated@example.com',
+            'phone' => '1234567890',
+            'address' => 'Updated Address',
         ]);
     }
 
@@ -118,6 +133,7 @@ class ClientControllerTest extends TestCase
      */
     public function test_client_update_requires_valid_data()
     {
+        $this->authenticateUser();
         $client = Client::factory()->create();
 
         // Missing required fields
@@ -125,6 +141,16 @@ class ClientControllerTest extends TestCase
 
         $response->assertStatus(422)
                  ->assertJsonValidationErrors(['name', 'email', 'phone']);
+
+        // Invalid email
+        $response = $this->putJson('/api/clients/' . $client->id, [
+            'name' => $this->faker->name,
+            'email' => 'invalid-email',
+            'phone' => $this->faker->phoneNumber,
+        ]);
+
+        $response->assertStatus(422)
+                 ->assertJsonValidationErrors(['email']);
     }
 
     /**
@@ -132,6 +158,7 @@ class ClientControllerTest extends TestCase
      */
     public function test_can_delete_client()
     {
+        $this->authenticateUser();
         $client = Client::factory()->create();
 
         $response = $this->deleteJson('/api/clients/' . $client->id);
@@ -141,7 +168,6 @@ class ClientControllerTest extends TestCase
                      'message' => 'Client deleted successfully'
                  ]);
 
-        // Since the model uses soft deletes, check that it's soft deleted
         $this->assertSoftDeleted('clients', [
             'id' => $client->id
         ]);
@@ -152,13 +178,14 @@ class ClientControllerTest extends TestCase
      */
     public function test_returns_404_when_client_not_found()
     {
+        $this->authenticateUser();
         $response = $this->getJson('/api/clients/999');
         $response->assertStatus(404);
 
         $response = $this->putJson('/api/clients/999', [
             'name' => 'Test',
             'email' => 'test@example.com',
-            'phone' => '123-456-7890'
+            'phone' => '1234567890',
         ]);
         $response->assertStatus(404);
 
